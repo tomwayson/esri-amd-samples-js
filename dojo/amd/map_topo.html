@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html >
+  <head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=7,IE=9" />
+    <!--The viewport meta tag is used to improve the presentation and behavior of the samples 
+      on iOS devices-->
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no"/>
+    <title>Topographic Map AMD</title>
+    <link rel="stylesheet" type="text/css" href="http://serverapi.arcgisonline.com/jsapi/arcgis/3.1/js/dojo/dijit/themes/claro/claro.css">
+    <style>
+      html, body { height: 100%; width: 100%; margin: 0; padding: 0; }
+      .esriScalebar{
+        padding: 20px 20px;
+      }
+      #map{
+        padding:0;
+      }
+    </style>
+    <script type="text/javascript">
+        var djConfig = {
+            async: true//,
+            //parseOnLoad: true
+        };
+    </script>
+    <script type="text/javascript" src="http://serverapi.arcgisonline.com/jsapi/arcgis/?v=3.1"></script>
+    <script>require(["dojo/parser", "dojo/on", "dojo/dom", "esri/main", "esri/Map", "dijit/layout/BorderContainer", "dijit/layout/ContentPane", "dojo/domReady!"], function(parser, on, dom, esri) { 
+        var map;
+        var initExtent;
+        var basemap;
+
+        // create the dijit layout widgets
+        parser.parse();
+
+        // initialize map
+        initExtent = new esri.geometry.Extent({"xmin":-122.46,"ymin":37.73,"xmax":-122.36,"ymax":37.77,"spatialReference":{"wkid":4326}});
+        map = new esri.Map("map",{
+          extent:esri.geometry.geographicToWebMercator(initExtent)
+        });
+
+        //Add the topographic layer to the map. View the ArcGIS Online site for services http://arcgisonline/home/search.html?t=content&f=typekeywords:service    
+        basemap = new esri.layers.ArcGISTiledMapServiceLayer("http://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer");
+        map.addLayer(basemap);
+
+        // map events
+        dojo.connect(map, 'onLoad', function(theMap) {
+          //resize the map when the browser resizes
+          dojo.connect(dijit.byId('map'), 'resize', map,map.resize);
+        });
+      });
+    </script>
+  </head>
+  <body class="claro">
+    <div data-dojo-type="dijit.layout.BorderContainer" data-dojo-props="design:'headline',gutters:false" style="width: 100%; height: 100%; margin: 0;">
+      <div id="map" data-dojo-type="dijit.layout.ContentPane" data-dojo-props="region:'center'" style="border:1px solid #000;padding:0;">
+     </div>
+    </div>
+  </body>
+</html>
