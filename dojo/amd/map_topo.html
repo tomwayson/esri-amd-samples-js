@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html >
   <head>
+    <!-- NOTE: this is an AMD-style port of the Add a topographic map sample located at:
+    http://help.arcgis.com/en/webapi/javascript/arcgis/help/jssamples/map_topo.html 
+    -->
     <meta charset="utf-8"/>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=7,IE=9" />
@@ -8,7 +11,8 @@
       on iOS devices-->
     <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no"/>
     <title>Topographic Map AMD</title>
-    <link rel="stylesheet" type="text/css" href="http://serverapi.arcgisonline.com/jsapi/arcgis/3.1/js/dojo/dijit/themes/claro/claro.css">
+    <link rel="stylesheet" type="text/css" href="http://serverapi.arcgisonline.com/jsapi/arcgis/3.2/js/dojo/dijit/themes/claro/claro.css">
+    <link rel="stylesheet" type="text/css" href="http://serverapi.arcgisonline.com/jsapi/arcgis/3.2/js/esri/css/esri.css" />
     <style>
       html, body { height: 100%; width: 100%; margin: 0; padding: 0; }
       .esriScalebar{
@@ -18,19 +22,16 @@
         padding:0;
       }
     </style>
-    <script type="text/javascript">
-        var djConfig = {
-            async: true//,
-            //parseOnLoad: true
-        };
-    </script>
-    <script type="text/javascript" src="http://serverapi.arcgisonline.com/jsapi/arcgis/?v=3.1"></script>
-    <script>require(["dojo/parser", "dojo/on", "dojo/dom", "esri/main", "esri/Map", "dijit/layout/BorderContainer", "dijit/layout/ContentPane", "dojo/domReady!"], function(parser, on, dom, esri) { 
+    <!-- NOTE: set parseOnLoad: false and call dojo/parser.parse() 
+      after dojo/domReady! otherwise map will not be initialized properly -->
+    <script type="text/javascript">var djConfig = { async: true, parseOnLoad: false };</script>
+    <script type="text/javascript" src="http://serverapi.arcgisonline.com/jsapi/arcgis/?v=3.2"></script>
+    <script>require(["dojo/parser", "esri/main", "esri/Map", "dijit/layout/BorderContainer", "dijit/layout/ContentPane", "dojo/domReady!"], function(parser, esri) { 
         var map;
         var initExtent;
         var basemap;
 
-        // create the dijit layout widgets
+        // initialize dijts
         parser.parse();
 
         // initialize map
