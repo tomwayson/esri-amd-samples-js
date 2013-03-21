@@ -1,5 +1,5 @@
 /* ==========================================================
- * Modal.js v0.0.1
+ * Modal.js v1.1.0
  * ==========================================================
  * Copyright 2012 xsokev
  *
@@ -17,24 +17,26 @@
  * ========================================================== */
 
 define([
-    'bootstrap/Support',
+    "./Support",
     "dojo/_base/declare",
     "dojo/query",
     "dojo/_base/lang",
-    'dojo/_base/window',
-    'dojo/on',
-    'dojo/dom-class',
-    'dojo/dom-construct',
+    "dojo/_base/window",
+    "dojo/on",
+    "dojo/dom-class",
+    "dojo/dom-construct",
     "dojo/dom-attr",
     "dojo/dom-style",
+    "dojo/request",
     "dojo/NodeList-dom",
-    'dojo/NodeList-traverse',
+    "dojo/NodeList-traverse",
+    "dojo/NodeList-manipulate",
     "dojo/domReady!"
-], function (support, declare, query, lang, win, on, domClass, domConstruct, domAttr, domStyle) {
+], function (support, declare, query, lang, win, on, domClass, domConstruct, domAttr, domStyle, request) {
     "use strict";
 
-    var toggleSelector = '[data-toggle="modal"]';
-    var dismissSelector = '[data-dismiss="modal"]';
+    var toggleSelector = '[data-toggle=modal]';
+    var dismissSelector = '[data-dismiss=modal]';
     var Modal = declare([], {
         defaultOptions:{
             backdrop:true,
@@ -43,8 +45,13 @@ define([
         },
         constructor:function (element, options) {
             this.options = lang.mixin(lang.clone(this.defaultOptions), (options || {}));
-            this.domNode = element;
+            var elm = this.domNode = element;
             on(this.domNode, on.selector(dismissSelector, 'click'), lang.hitch(this, this.hide));
+            if (this.options.remote) {
+                request(this.options.remote).then(function(html){
+                    query('.modal-body', elm).html(html);
+                });
+            }
         },
         toggle:function () {
             return this[!this.isShown ? 'show' : 'hide']();
@@ -67,6 +74,10 @@ define([
                     _this.domNode.offsetWidth;
                 }
                 domClass.add(_this.domNode, 'in');
+                domAttr.set(_this.domNode, 'aria-hidden', false);
+                _this.domNode.focus();
+                _enforceFocus.call(_this);
+
                 if (transition) {
                     on.once(_this.domNode, support.trans.end, function () {
                         on.emit(_this.domNode, 'shown', {bubbles:false, cancelable:false});
@@ -87,7 +98,11 @@ define([
             this.isShown = false;
             domClass.remove(win.body(), 'modal-open');
             _escape.call(this);
+
+            if (this.focusInEvent) { this.focusInEvent.remove(); }
+
             domClass.remove(this.domNode, 'in');
+            domAttr.set(_this.domNode, 'aria-hidden', true);
 
             if (support.trans && domClass.contains(this.domNode, 'fade')) {
                 _hideWithTransition.call(this);
@@ -97,21 +112,19 @@ define([
         }
     });
 
-    var _getTargetSelector = function (node) {
+    function _getTargetSelector(node) {
         var selector = domAttr.get(node, 'data-target');
         if (!selector) {
             selector = domAttr.get(node, "href");
             selector = selector && selector.replace(/.*(?=#[^\s]*$)/, '');
         }
         return (!selector) ? "" : selector;
-    };
+    }
 
     function _hideWithTransition() {
         var _this = this;
         var timeout = setTimeout(function () {
-            if (_this.hideEvent) {
-                _this.hideEvent.remove();
-            }
+            if (_this.hideEvent) { _this.hideEvent.remove(); }
             _hideModal.call(_this);
         }, 500);
         _this.hideEvent = support.trans ? on.once(_this.domNode, support.trans.end, function () {
@@ -148,9 +161,11 @@ define([
             }
         } else if (!_this.isShown && _this.backdropNode) {
             domClass.remove(_this.backdropNode, 'in');
-            (support.trans && domClass.contains(_this.domNode, 'fade')) ?
-                on.once(_this.backdropNode, support.trans.end, lang.hitch(_this, _removeBackdrop)) :
+            if (support.trans && domClass.contains(_this.domNode, 'fade')) {
+                on.once(_this.backdropNode, support.trans.end, lang.hitch(_this, _removeBackdrop));
+            } else {
                 _removeBackdrop.call(_this);
+            }
         } else if (callback) {
             callback();
         }
@@ -166,13 +181,22 @@ define([
         var _this = this;
         if (_this.isShown && _this.options.keyboard) {
             _this.keyupEvent = on(win.body(), 'keyup', function (e) {
-                e.which === 27 && _this.hide();
+                if (e.which === 27) { _this.hide(); }
             });
         } else if (!_this.isShown) {
             if (_this.keyupEvent) {
                 _this.keyupEvent.remove();
             }
         }
+    }
+
+    function _enforceFocus() {
+        var _this = this;
+        _this.focusInEvent = on(document, on.selector('.modal', 'focusin'), function (e) {
+            if (_this.domNode !== this && !query(this, _this.domNode).length) {
+                _this.domNode.focus();
+            }
+        });
     }
 
     lang.extend(query.NodeList, {
@@ -193,10 +217,17 @@ define([
         }
     });
     on(win.body(), on.selector(toggleSelector, 'click'), function (e) {
-        var target = query(_getTargetSelector(e.target));
+        var target = query(_getTargetSelector(this));
         if (target[0] !== undefined) {
-            var option = support.getData(target, 'modal') ? 'toggle' : lang.mixin({}, lang.mixin(support.getData(target), support.getData(e.target)));
+            var href = domAttr.get(this, "href");
+            var option = support.getData(target, 'modal') ? 'toggle' : lang.mixin({ remote: !/#/.test(href) && href}, lang.mixin(support.getData(target), support.getData(this)));
+            if (option === 'toggle') {
+              lang.mixin(support.getData(target, 'modal').options, support.getData(this));
+            }
             target.modal(option);
+            on.once(target[0], 'hide', function () {
+                target[0].focus();
+            });
         }
         if (e) {
             e.preventDefault();

@@ -1,5 +1,5 @@
 /* ==========================================================
- * Datepicker.js v0.0.1
+ * Datepicker.js v1.1.0
  * ==========================================================
  * Copyright 2012 xsokev
  *
@@ -27,7 +27,7 @@ define([
     "dojo/dom-geometry",
     "dojo/dom-style",
     "dojo/_base/array",
-    "bootstrap/Support",
+    "./Support",
     "dojo/NodeList-dom",
     "dojo/NodeList-traverse",
     "dojo/domReady!"

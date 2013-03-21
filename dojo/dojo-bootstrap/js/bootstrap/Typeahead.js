@@ -1,5 +1,5 @@
 /* ==========================================================
- * Typeahead.js v0.0.1
+ * Typeahead.js v1.1.0
  * ==========================================================
  * Copyright 2012 xsokev
  *
@@ -28,7 +28,7 @@ define([
     "dojo/dom-geometry",
     "dojo/dom-style",
     "dojo/_base/array",
-    "bootstrap/Support",
+    "./Support",
     "dojo/NodeList-dom",
     "dojo/NodeList-traverse",
     "dojo/domReady!"
@@ -41,7 +41,8 @@ define([
             source: [],
             items: 8,
             menu: '<ul class="typeahead dropdown-menu"></ul>',
-            item: '<li><a href="#"></a></li>'
+            item: '<li><a href="#"></a></li>',
+            minLength: 1
         },
         constructor: function (element, options) {
             this.options = lang.mixin(lang.clone(this.defaultOptions), (options || {}));
@@ -82,10 +83,14 @@ define([
         lookup: function () {
             var items;
             this.query = this.domNode.value;
-            if (!this.query) {
+            if (!this.query || this.query.length < this.options.minLength) {
                 return this.shown ? this.hide() : this;
             }
-            items = array.filter(this.source, function (item) {
+            items = (typeof this.source === 'function') ? this.source(this.query, dojo.hitch(this, 'process')) : this.source;
+            return items ? this.process(items) : this;
+        },
+        process: function (items) {
+            items = array.filter(items, function (item) {
                 return this.matcher(item);
             }, this);
             items = this.sorter(items);
@@ -93,10 +98,9 @@ define([
                 return this.shown ? this.hide() : this;
             }
             this.render(items.slice(0, this.options.items)).show();
-            return this;
         },
         matcher: function (item) {
-            return (item.toLowerCase().indexOf(this.query.toLowerCase()))+1;
+            return (item.toString().toLowerCase().indexOf(this.query.toLowerCase()))+1;
         },
         sorter: function (items) {
             var beginswith = [],
@@ -105,15 +109,15 @@ define([
                 item;
 
             while (item = items.shift()) {
-                if (!item.toLowerCase().indexOf(this.query.toLowerCase())) { beginswith.push(item); }
-                else if (~item.indexOf(this.query)) { caseSensitive.push(item); }
+                if (!item.toString().toLowerCase().indexOf(this.query.toString().toLowerCase())) { beginswith.push(item); }
+                else if (item.toString().indexOf(this.query) >= 0) { caseSensitive.push(item); }
                 else { caseInsensitive.push(item); }
             }
             return beginswith.concat(caseSensitive, caseInsensitive);
         },
         highlighter: function (item) {
             var query = this.query.replace(/[\-\[\]{}()*+?.,\\\^$|#\s]/g, '\\$&');
-            return item.replace(new RegExp('(' + query + ')', 'ig'), function ($1, match) {
+            return item.toString().replace(new RegExp('(' + query + ')', 'ig'), function ($1, match) {
                 return '<strong>' + match + '</strong>';
             });
         },
@@ -130,21 +134,21 @@ define([
         },
         next: function () {
             var active = query('.active', this.menuNode);
-            var next = query(active).next();
-
             active.removeClass('active');
+            var next = active.next();
+
             if (!next.length) {
-                next = query('li', this.menuNode);
+                next = query('li', this.menuNode).first();
             }
             next.addClass('active');
         },
         prev: function () {
             var active = query('.active', this.menuNode);
-            var prev = query(active).prev();
-
             active.removeClass('active');
+            var prev = active.prev();
+
             if (!prev.length) {
-                prev = query('li', this.menuNode);
+                prev = query('li', this.menuNode).last();
             }
             prev.addClass('active');
         },
@@ -153,13 +157,37 @@ define([
             on(this.domNode, 'keypress', lang.hitch(this, 'keypress'));
             on(this.domNode, 'keyup', lang.hitch(this, 'keyup'));
             if(sniff('webkit') || sniff('ie')) {
-                on(this.domNode, 'keydown', lang.hitch(this, 'keypress'));
+                on(this.domNode, 'keydown', lang.hitch(this, 'keydown'));
             }
             on(this.menuNode, 'click', lang.hitch(this, 'click'));
             on(this.menuNode, on.selector('li', 'mouseover'), lang.hitch(this, 'mouseenter'));
         },
-        keyup: function (e) {
+        move: function (e) {
+            if (!this.shown) { return; }
+
             switch(e.keyCode) {
+                case 9: // tab
+                case 13: // enter
+                case 27: // escape
+                    e.preventDefault();
+                    break;
+
+                case 38: // up arrow
+                    e.preventDefault();
+                    this.prev();
+                    break;
+
+                case 40: // down arrow
+                    e.preventDefault();
+                    this.next();
+                    break;
+            }
+
+            e.stopPropagation();
+        },
+        keyup: function (e) {
+            var code = e.charCode || e.keyCode;
+            switch(code) {
                 case 40: // down arrow
                 case 38: // up arrow
 
@@ -182,28 +210,14 @@ define([
             e.stopPropagation();
             e.preventDefault();
         },
+        keydown: function (e) {
+            var code = e.charCode || e.keyCode;
+            this.suppressKeyPressRepeat = array.indexOf([40,38,9,13,27], code) < 0;
+            this.move(e);
+        },
         keypress: function (e) {
-            if (!this.shown) { return; }
-
-            switch(e.keyCode) {
-                case 9: // tab
-                case 13: // enter
-                case 27: // escape
-                    e.preventDefault();
-                break;
-
-                case 38: // up arrow
-                    e.preventDefault();
-                    this.prev();
-                break;
-
-                case 40: // down arrow
-                    e.preventDefault();
-                    this.next();
-                break;
-            }
-
-            e.stopPropagation();
+            if (this.suppressKeyPressRepeat) { return; }
+            this.move(e);
         },
         blur: function () {
             var _this = this;
@@ -232,10 +246,10 @@ define([
         }
     });
     on(document, on.selector(provideSelector, 'focusin'), function (e) {
-        var data = support.getData(e.target, 'typeahead');
+        var data = support.getData(this, 'typeahead');
         if(data){ return; }
         e.preventDefault();
-        query(e.target).typeahead(support.getData(e.target));
+        query(this).typeahead(support.getData(this));
     });
 
     return Typeahead;

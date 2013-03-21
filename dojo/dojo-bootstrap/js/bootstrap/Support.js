@@ -1,5 +1,5 @@
 /* ==========================================================
- * Support.js v0.0.1
+ * Support.js v1.1.0
  * ==========================================================
  * Copyright 2012 xsokev
  *
@@ -47,7 +47,6 @@ function (query, lang, attr, array, json) {
                 'WebkitTransition':'webkitTransitionEnd',
                 'MozTransition':'transitionend',
                 'OTransition':'oTransitionEnd',
-                'msTransition':'MSTransitionEnd',
                 'transition':'transitionend'
             };
             for (var name in transEndEventNames) {

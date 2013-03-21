@@ -1,15 +1,10 @@
-require({
-    packages: [
-        { name: 'dojo', location: '../dojo' },
-        { name: 'bootstrap', location: '../bootstrap' }
-    ]
-},[
+require({},[
     "doh",
     "dojo/on",
     "dojo/_base/sniff",
     "dojo/dom-construct",
     "dojo/dom-class",
-    "../Support",
+    "bootstrap/Support",
     "bootstrap/Typeahead"
 ], function (doh, on, sniff, domConstruct, domClass, support) {
     "use strict";

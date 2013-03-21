@@ -1,5 +1,5 @@
 /* ==========================================================
- * Button.js v0.0.1
+ * Button.js v1.1.0
  * ==========================================================
  * Copyright 2012 xsokev
  *
@@ -17,7 +17,7 @@
  * ========================================================== */
 
 define([
-    "bootstrap/Support",
+    "./Support",
     "dojo/_base/declare",
     "dojo/query",
     "dojo/_base/lang",
@@ -87,7 +87,11 @@ define([
     });
 
     on(win.body(), on.selector(toggleSelector, '.btn:click'), function (e) {
-        query(e.target).button('toggle');
+        var btn = e.target;
+        if (!domClass.contains(btn, 'btn')){
+            btn = query(btn).closest('.btn');
+        }
+        query(btn).button('toggle');
     });
 
     return Button;
