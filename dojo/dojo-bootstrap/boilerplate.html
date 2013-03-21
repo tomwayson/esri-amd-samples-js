@@ -8,7 +8,7 @@
     <meta name="author" content="">
 
     <!-- Le styles -->
-    <link rel="stylesheet" href="http://serverapi.arcgisonline.com/jsapi/arcgis/3.2/js/esri/css/esri.css">
+    <link rel="stylesheet" href="http://serverapi.arcgisonline.com/jsapi/arcgis/3.3/js/esri/css/esri.css">
     <link rel="stylesheet" href="./css/bootstrap.css" type="text/css" media="screen" title="no title" charset="utf-8">
 
     <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
@@ -56,28 +56,16 @@
             ]
         };
     </script>
-    <script type="text/javascript" src="http://serverapi.arcgisonline.com/jsapi/arcgis/?v=3.2compact"></script>
+    <script type="text/javascript" src="http://serverapi.arcgisonline.com/jsapi/arcgis/?v=3.3compact"></script>
     <script>
-        require(["dojo/query", "esri/main", "esri/Map", "bootstrap/Tab", "bootstrap/Dropdown", "dojo/domReady!"], function(query, esri) {
-
-            var map;
-            var initExtent;
-            var basemap;
-
-            // initialize map
-            initExtent = new esri.geometry.Extent({"xmin":-122.46,"ymin":37.73,"xmax":-122.36,"ymax":37.77,"spatialReference":{"wkid":4326}});
-            map = new esri.Map("map",{
-              extent:esri.geometry.geographicToWebMercator(initExtent)
-            });
-
-            //Add the topographic layer to the map. View the ArcGIS Online site for services http://arcgisonline/home/search.html?t=content&f=typekeywords:service    
-            basemap = new esri.layers.ArcGISTiledMapServiceLayer("http://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer");
-            map.addLayer(basemap);
-
-            // map events
-            dojo.connect(map, 'onLoad', function(theMap) {
-              //resize the map when the browser resizes
-              dojo.connect(dijit.byId('map'), 'resize', map,map.resize);
+        require(["dojo/query", "esri/main", "esri/map", "bootstrap/Tab", "bootstrap/Dropdown", "dojo/domReady!"], function(query, esri) {
+            // using the new simplified map loader, see:
+            // http://help.arcgis.com/en/webapi/javascript/arcgis/jssamples/map_simple.html
+            var map = new esri.Map("map",{
+                basemap:"topo",
+                center:[-122.45,37.75], //long, lat
+                zoom:13,
+                sliderStyle:"small"
             });
         });
     </script>
