@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>ArcGIS for JavaScript API with Dojo Bootstrap</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <!-- Le styles -->
+    <link rel="stylesheet" href="http://serverapi.arcgisonline.com/jsapi/arcgis/3.3/js/esri/css/esri.css">
+    <link rel="stylesheet" href="./css/bootstrap.css" type="text/css" media="screen" title="no title" charset="utf-8">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+    <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+</head>
+<body class="claro">
+    <div class="container">
+        <div class="row">
+            <div class="span12 columns">
+                <h1>ArcGIS for JavaScript API with Dojo Bootstrap</h1>
+                <div style="float: right"><a href="https://github.com/tomwayson/esri-js-api/blob/master/README.md" target="_blank" rel="external" class="btn"><i class="icon-info-sign"></i> About</a></div>
+                <p>This is some boilerplate code for working with Esri's ArcGIS for JavaScript API and Dojo Bootstrap (two great tastes that taste great together). If you see tabs and a map, <em>it's working!</em></p>
+                <p>Add <a href="http://dojobootstrap.com/" target="_blank" rel="external">Dojo Bootstrap</a>, <a href="http://dojotoolkit.org/" target="_blank" rel="external">Dojo</a>, and/or <a href="http://help.arcgis.com/en/webapi/javascript/arcgis/" target="_blank" rel="external">ArcGIS for JavaScript API</a> modules as needed to test that they play nicely together.</p>
+                <ul id="myTab" class="nav nav-tabs">
+                    <li class="active"><a href="#mapTab" data-toggle="tab">Map</a></li>
+                    <li><a href="#gridTab" data-toggle="tab">Grid</a></li>
+                </ul>
+                <div id="myTabContent" class="tab-content">
+                    <div class="tab-pane fade in active" id="mapTab">
+                        <div id="map" style="width:100%; height:400px"></div>
+                    </div>
+                    <div class="tab-pane fade" id="gridTab">
+                        <p>TODO: <a href="http://dojofoundation.org/packages/dgrid/" target="_blank" rel="external">dGrid</a> goes here.</p>
+                    </div>
+                </div>
+                <hr>
+                <div class="alert alert-info"><strong>Heads up!</strong> This boilerplate is able to use v1.1 of <a href="http://dojobootstrap.com/" target="_blank">Dojo Bootstrap</a> because it uses v3.3 of the <a href="http://help.arcgis.com/en/webapi/javascript/arcgis/" target="_blank">ArcGIS for JavaScript API</a>, which is the first version built on <a href="http://dojotoolkit.org/" target="_blank">Dojo</a> v1.8.</div>
+            </div>
+        </div>
+    </div>
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script type="text/javascript">
+        var djConfig = {
+            async: true,
+            tlmSiblingOfDojo: 0, 
+            isDebug: 1,
+            packages: [  
+              { name: 'bootstrap',
+                location: location.pathname.replace(/\/[^/]+$/, '/js/bootstrap')
+              }
+            ]
+        };
+    </script>
+    <script type="text/javascript" src="http://serverapi.arcgisonline.com/jsapi/arcgis/?v=3.3compact"></script>
+    <script>
+        require(["dojo/query", "esri/main", "esri/map", "bootstrap/Tab", "bootstrap/Dropdown", "dojo/domReady!"], function(query, esri) {
+            // using the new simplified map loader, see:
+            // http://help.arcgis.com/en/webapi/javascript/arcgis/jssamples/map_simple.html
+            var map = new esri.Map("map",{
+                basemap:"topo",
+                center:[-122.45,37.75], //long, lat
+                zoom:13,
+                sliderStyle:"small"
+            });
+        });
+    </script>
+</body>
+</html>
