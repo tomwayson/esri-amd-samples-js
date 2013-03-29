@@ -11,8 +11,8 @@
       on iOS devices-->
     <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no"/>
     <title>Topographic Map AMD</title>
-    <link rel="stylesheet" type="text/css" href="http://serverapi.arcgisonline.com/jsapi/arcgis/3.2/js/dojo/dijit/themes/claro/claro.css">
-    <link rel="stylesheet" type="text/css" href="http://serverapi.arcgisonline.com/jsapi/arcgis/3.2/js/esri/css/esri.css" />
+    <link rel="stylesheet" type="text/css" href="http://serverapi.arcgisonline.com/jsapi/arcgis/3.3/js/dojo/dijit/themes/claro/claro.css">
+    <link rel="stylesheet" type="text/css" href="http://serverapi.arcgisonline.com/jsapi/arcgis/3.3/js/esri/css/esri.css" />
     <style>
       html, body { height: 100%; width: 100%; margin: 0; padding: 0; }
       .esriScalebar{
@@ -25,8 +25,8 @@
     <!-- NOTE: set parseOnLoad: false and call dojo/parser.parse() 
       after dojo/domReady! otherwise map will not be initialized properly -->
     <script type="text/javascript">var djConfig = { async: true, parseOnLoad: false };</script>
-    <script type="text/javascript" src="http://serverapi.arcgisonline.com/jsapi/arcgis/?v=3.2"></script>
-    <script>require(["dojo/parser", "esri/main", "esri/Map", "dijit/layout/BorderContainer", "dijit/layout/ContentPane", "dojo/domReady!"], function(parser, esri) { 
+    <script type="text/javascript" src="http://serverapi.arcgisonline.com/jsapi/arcgis/?v=3.3"></script>
+    <script>require(["dojo/parser", "esri/main", "esri/map", "esri/geometry", "dijit/layout/BorderContainer", "dijit/layout/ContentPane", "dojo/domReady!"], function(parser, esri, Map) { 
         var map;
         var initExtent;
         var basemap;
