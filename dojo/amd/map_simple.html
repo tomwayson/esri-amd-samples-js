@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=7,IE=9">
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no"/>
+    <title>Simple Map</title>
+    <link rel="stylesheet" href="http://serverapi.arcgisonline.com/jsapi/arcgis/3.4/js/dojo/dijit/themes/claro/claro.css">
+    <link rel="stylesheet" href="http://serverapi.arcgisonline.com/jsapi/arcgis/3.4/js/esri/css/esri.css">
+    <style>
+      html, body, #map {
+        height:100%;
+        width:100%;
+        margin:0;
+        padding:0;
+      }
+      body {
+        background-color:#FFF;
+        overflow:hidden;
+        font-family:"Trebuchet MS";
+      }
+    </style>
+    <script src="http://serverapi.arcgisonline.com/jsapi/arcgis/3.4/"></script>
+    <script>
+      dojo.require("esri.map");
+
+      function init() {
+        var map = new esri.Map("map",{
+          basemap:"topo",
+          center:[-122.45,37.75], //long, lat
+          zoom:13,
+          sliderStyle:"small"
+        });
+      }
+
+      dojo.ready(init);
+    </script>
+  </head>
+
+  <body class="claro">
+    <div id="map"></div>
+  </body>
+</html>
