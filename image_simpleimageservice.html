@@ -1,0 +1,61 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+  <head>
+    <!-- NOTE: this is an AMD-style port of the Image service sample:
+    http://developers.arcgis.com/en/javascript/jssamples/image_simpleimageservice.html
+    -->
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=7, IE=9, IE=10">
+    <!--The viewport meta tag is used to improve the presentation and behavior of the samples
+      on iOS devices-->
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no">
+    <title>Simple Image Service AMD</title>
+    <link rel="stylesheet" href="http://serverapi.arcgisonline.com/jsapi/arcgis/3.5/js/dojo/dijit/themes/claro/claro.css">
+    <link rel="stylesheet" href="http://serverapi.arcgisonline.com/jsapi/arcgis/3.5/js/esri/css/esri.css" />
+
+    <style>
+      html, body, #map { height: 100%; width: 100%; margin: 0; padding: 0; }
+    </style>
+    <!-- add async: true -->
+    <script>var dojoConfig = { parseOnLoad: true, async: true };</script>
+    <script src="http://serverapi.arcgisonline.com/jsapi/arcgis/3.5/"></script>
+    <script>
+      // use require() instead of dojo.require()
+      // dojo.require("dijit.layout.BorderContainer");
+      // dojo.require("dijit.layout.ContentPane");
+      // dojo.require("esri.map");
+      require([
+        "esri/map",
+        "esri/layers/ArcGISImageServiceLayer",
+        "esri/layers/ImageServiceParameters",
+        "dojo/domReady!"
+      ], function(Map, ArcGISImageServiceLayer, ImageServiceParameters) {
+        var map;
+
+        function init() {
+          map = new esri.Map("map", {
+            basemap: "topo",
+            center: [-79.40, 43.64],
+            zoom: 12
+          });
+
+          var params = new ImageServiceParameters();
+          params.noData = 0;
+          var imageServiceLayer = new ArcGISImageServiceLayer("http://sampleserver6.arcgisonline.com/arcgis/rest/services/Toronto/ImageServer", {
+            imageServiceParameters: params,
+            opacity: .75
+          });
+          map.addLayer(imageServiceLayer);
+        }
+        // domReady! replaces dojo.ready()
+        // dojo.ready(init);
+        init();
+      });
+    </script>
+  </head>
+
+  <body >
+    <div id="map"> </div>
+  </body>
+
+</html>
