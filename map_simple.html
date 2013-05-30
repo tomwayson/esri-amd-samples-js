@@ -26,6 +26,7 @@
     <script type="text/javascript">var djConfig = { async: true };</script>
     <script src="http://serverapi.arcgisonline.com/jsapi/arcgis/3.5/"></script>
     <script>
+      // use require() instead of dojo.require()
       // dojo.require("esri.map")
       require(["esri/main", "esri/map", "dojo/domReady!"], function(esri) {
 
@@ -38,7 +39,7 @@
             });
           }
 
-          // domReady! replaces dojo.ready
+          // domReady! replaces dojo.ready()
           // dojo.ready(init);
           init();
       });
