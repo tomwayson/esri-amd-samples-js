@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <!-- NOTE: this is an AMD-style port of the Create a map sample:
+    http://developers.arcgis.com/en/javascript/jssamples/map_simple.html
+    -->
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=7,IE=9">
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no"/>
+    <title>Add Item to ArcGIS Portal</title>
+    <link rel="stylesheet" href="http://serverapi.arcgisonline.com/jsapi/arcgis/3.5/js/dojo/dijit/themes/claro/claro.css">
+    <link rel="stylesheet" href="http://serverapi.arcgisonline.com/jsapi/arcgis/3.5/js/esri/css/esri.css">
+  </head>
+  <body class="claro">
+    <form id="addItemForm">
+      <div>
+        <label for="title">Title:</label>
+        <input type="text" value="Test Title" id="title" name="title" />
+      </div>
+      <div>
+        <label for="type">Type:</label>
+        <input type="text" value="Feature Collection" id="type" name="type" />
+      </div>
+      <div>
+        <label for="description">Description:</label>
+        <br/><textarea id="description" name="description">Test Description</textarea>
+      </div>
+      <div>
+        <label for="text">Item Text:</label>
+        <br/><textarea id="text" name="text">{
+    "rasterFunction": "WeightedOverlayUSFS",
+    "rasterFunctionArguments": {
+        "Raster1": "$1",
+        "Weight_Raster1": 0.50,
+        "InputRanges_Raster1": [0.0000000000000000, 0.0000000000000000, 5.0000000000000000, 5.0000000000000000, 10.0000000000000000, 10.0000000000000000],
+        "OutputValues_Raster1": [1.0000000000000000, 5.0000000000000000, 9.0000000000000000],
+        "Raster2": "$2",
+        "Weight_Raster2": 0.50,
+        "InputRanges_Raster2": [0.0000000000000000, 0.0000000000000000, 1.0000000000000000, 1.0000000000000000, 2.0000000000000000, 2.0000000000000000, 3.0000000000000000, 3.0000000000000000, 4.0000000000000000, 4.0000000000000000],
+        "OutputValues_Raster2": [1.0000000000000000, 5.0000000000000000, 5.0000000000000000, 9.0000000000000000, 9.0000000000000000],
+        "Raster3": "$3",
+        "Weight_Raster3": 0.00,
+        "Raster4": "$4",
+        "Weight_Raster4": 0.00,
+        "Raster5": "$5",
+        "Weight_Raster5": 0.00,
+        "Raster6": "$6",
+        "Weight_Raster6": 0.00,
+        "Raster7": "$7",
+        "Weight_Raster7": 0.00
+    }
+}</textarea>
+      </div>
+      <button id="addItemButton">Add Item</button>
+    </form>
+    <script type="text/javascript">var djConfig = { async: true };</script>
+    <script src="http://serverapi.arcgisonline.com/jsapi/arcgis/3.5/"></script>
+    <script>
+      require([
+        "dojo/_base/lang",
+        "dojo/dom",
+        "dojo/on",
+        "dojo/io-query",
+        "dojo/io/script",
+        "esri/arcgis/Portal",
+        "esri/main",
+        "esri/Map", // TODO: esri/utils?
+        "dojo/domReady!"
+      ], function(lang, dom, on, ioQuery, script, esriPortal, esri) {
+        var portalHelper = {
+          addItem: function (form, portalUser) {
+              // make the request and then check the status
+              var requestParams = { f: "json", token: portalUser.credential.token };
+              var url = portalUser.portal.portalUrl + "content/users/" + portalUser.username + "/addItem";
+              url += "?" + ioQuery.objectToQuery(requestParams);
+              // initiate request
+              return esri.request({
+                url: url,
+                form: form,
+                timeout: 0
+              }, {
+                usePost: true
+              });
+          },
+          getItem: function(portal, id) {
+            return portal.queryItems({
+              q: "id:" + id
+            }).then(function(response) {
+              var item;
+              var results = response.results;
+              if (results && results.length > 0) {
+                // grab the first item
+                item = results[0];
+              }
+              return item;
+            });
+          },
+          getItemData: function(itemDataUrl, handleAs) {
+            return esri.request({
+              url: itemDataUrl,
+              handleAs: handleAs
+            });
+          }
+        };
+        // connect to AGOL
+        var portal = new esriPortal.Portal("http://www.arcgis.com");
+        on(portal, "Load", function() {
+          console.log(portal);
+          // TODO: query for all items in a group
+          // sign in user
+          portal.signIn().then(function(portalUser) {
+            var addItemForm = dom.byId("addItemForm");
+            console.log(portalUser);
+            // wire up the add item button
+            on(addItemForm, "submit", function(e) {
+              // don't submit
+              e.preventDefault();
+              // add the item
+              portalHelper.addItem(addItemForm, portalUser).then(function(response) {
+                console.log(response);
+                if (response.id) {
+                  // get item info
+                  portalHelper.getItem(portal, response.id).then(function (item) {
+                    console.log(item);
+                    if (item && item.itemDataUrl) {
+                      // get item data
+                      portalHelper.getItemData(item.itemDataUrl).then(function(response) {
+                        console.log(response);
+                      });
+                    }
+                  });
+                }
+              });
+            });
+          });
+        });
+      });
+    </script>
+  </body>
+</html>
