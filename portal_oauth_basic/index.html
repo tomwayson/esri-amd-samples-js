@@ -51,7 +51,7 @@
 
   <script type="text/javascript">
     var dojoConfig = {
-      // add async
+      // AMD: add async
       async: true,
       packages: [
         { name: "app",  location: location.pathname.replace(/\/[^/]+$/, "") }
@@ -88,7 +88,9 @@
 
       function initialize() {
         OAuthHelper.init({
-          appId:      "q244Lb8gDRgWQ8hM",
+          // TODO: use your own appId
+          // appId:      "q244Lb8gDRgWQ8hM",
+          appId:      "qFYNDbguE7L79WF5",
           portal:     "http://www.arcgis.com",
           expiration: (14 * 24 * 60), // 2 weeks, in minutes
           popup:      false
