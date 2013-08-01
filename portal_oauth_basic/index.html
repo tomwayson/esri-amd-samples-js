@@ -16,7 +16,7 @@
       margin: 0px;
       padding: 0px;
     }
-    
+
     .esri-item-gallery .esri-item-container {
       float: left;
       text-align: center;
@@ -24,33 +24,35 @@
       width: 204px;
       display: inline-block;
     }
-    
+
     .esri-item-gallery .esri-image {
       width: 200px;
       height: 133px;
       border: 2px solid gray;
       border-radius: 5px;
     }
-    
+
     .esri-item-gallery .esri-null-image {
       line-height: 133px;
       text-align: center;
       color: #999999;
     }
-    
+
     .esri-item-gallery .esri-title {
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
-    
+
     .esri-item-gallery .esri-null-title {
       color: #999999;
     }
   </style>
-  
+
   <script type="text/javascript">
-    var dojoConfig = { 
+    var dojoConfig = {
+      // add async
+      async: true,
       packages: [
         { name: "app",  location: location.pathname.replace(/\/[^/]+$/, "") }
       ]
@@ -59,107 +61,147 @@
   <script src="//serverapi.arcgisonline.com/jsapi/arcgis/3.5compact/"></script>
 
   <script type="text/javascript">
-    dojo.require("esri.arcgis.Portal");
-    dojo.require("app.OAuthHelper");
+    // AMD: use require instead of dojo.require
+    // dojo.require("esri.arcgis.Portal");
+    // dojo.require("app.OAuthHelper");
+    require([
+      "esri/arcgis/Portal",
+      "app/OAuthHelper",
+      // AMD: require all modules used in the page
+      "dojo/ready",
+      "dojo/dom-style",
+      "dojo/dom",
+      "dojo/dom-attr",
+      "dojo/_base/array",
+      "dojo/on"
+    ], function(
+      esriPortal,
+      OAuthHelper,
+      ready, domStyle, dom, domAttr, array, on
+    ) {
 
-    dojo.ready(initialize);
-    
-    var grid;
-    
-    function initialize() {
-      OAuthHelper.init({
-        appId:      "q244Lb8gDRgWQ8hM",
-        portal:     "http://www.arcgis.com",
-        expiration: (14 * 24 * 60), // 2 weeks, in minutes
-        popup:      false
-      });
-      
-      if (OAuthHelper.isSignedIn()) {
-        displayItems();
-      }
-      else {
-        // Anonymous view
-        dojo.style(dojo.byId("anonymousPanel"), "display", "block");
-        dojo.style(dojo.byId("personalizedPanel"), "display", "none");
-      }
-    }
-    
-    function signIn() {
-      OAuthHelper.signIn().then(displayItems);
-    }
-    
-    function displayItems() {
-      new esri.arcgis.Portal("https://www.arcgis.com").signIn()
-        
-        .then(function(portalUser) {
-          console.log("Signed in to the portal: ", portalUser);
+      // AMD: use ready instead of dojo.ready
+      // dojo.ready(initialize);
+      ready(initialize);
 
-          dojo.attr(dojo.byId("userId"), "innerHTML", portalUser.fullName);
-          dojo.style(dojo.byId("anonymousPanel"), "display", "none");
-          dojo.style(dojo.byId("personalizedPanel"), "display", "block");
-          
-          queryPortal(portalUser);
-        })
-        
-        .otherwise(function(error) {
-          console.log("Error occurred while signing in: ", error);
+      var grid;
+
+      function initialize() {
+        OAuthHelper.init({
+          appId:      "q244Lb8gDRgWQ8hM",
+          portal:     "http://www.arcgis.com",
+          expiration: (14 * 24 * 60), // 2 weeks, in minutes
+          popup:      false
         });
-    }
 
-    function queryPortal(portalUser) {
-      var portal = portalUser.portal;
-      
-      //See list of valid item types here:  http://www.arcgis.com/apidocs/rest/index.html?itemtypes.html
-      //See search reference here:  http://www.arcgis.com/apidocs/rest/index.html?searchreference.html
-      var queryParams = {
-        q:          "owner:" + portalUser.username,
-        sortField:  "numViews",
-        sortOrder:  "desc",
-        num:        20
-      };
+        if (OAuthHelper.isSignedIn()) {
+          displayItems();
+        }
+        else {
+          // Anonymous view
+          // AMD: use domStyle/dom instead of dojo.style/dojo.dom
+          // dojo.style(dojo.byId("anonymousPanel"), "display", "block");
+          // dojo.style(dojo.byId("personalizedPanel"), "display", "none");
+          domStyle.set(dom.byId("anonymousPanel"), "display", "block");
+          domStyle.set(dom.byId("personalizedPanel"), "display", "none");
+        }
 
-      portal.queryItems(queryParams)
-            .then(createGallery);
-    }
-    
-    function createGallery(items) {
-      var htmlFragment = "";
-      
-      dojo.forEach(items.results, function(item) {
-        htmlFragment += (
-          "<div class=\"esri-item-container\">" +
-            (
-              item.thumbnailUrl ?
-              "<div class=\"esri-image\" style=\"background-image:url(" + item.thumbnailUrl + ");\"></div>" :
-              "<div class=\"esri-image esri-null-image\">Thumbnail not available</div>"
-            ) +
-            (
-              item.title ?
-              "<div class=\"esri-title\">" + (item.title || "") + "</div>" :
-              "<div class=\"esri-title esri-null-title\">Title not available</div>"
-            ) +
-          "</div>"
-        );
-      });
-      
-      dojo.byId("itemGallery").innerHTML = htmlFragment;
-    }
+        // AMD: wire up events here instead of inline in the HTML
+        // because the event handling functions are no longer in the global scope
+        on(dom.byId("signInLink"), "click", signIn);
+        on(dom.byId("signOutLink"), "click", OAuthHelper.signOut);
+      }
+
+      //
+      function signIn() {
+        OAuthHelper.signIn().then(displayItems);
+      }
+
+      function displayItems() {
+        // use esriPortal instead of esri.arcgis.Portal
+        // new esri.arcgis.Portal("https://www.arcgis.com").signIn()
+        new esriPortal.Portal("https://www.arcgis.com").signIn()
+
+          .then(function(portalUser) {
+            console.log("Signed in to the portal: ", portalUser);
+
+            // use domAttr/domStyle instead of dojo.attr/dom.style
+            // dojo.attr(dom.byId("userId"), "innerHTML", portalUser.fullName);
+            // dojo.style(dom.byId("anonymousPanel"), "display", "none");
+            // dojo.style(dom.byId("personalizedPanel"), "display", "block");
+            domAttr.set(dom.byId("userId"), "innerHTML", portalUser.fullName);
+            domStyle.set(dom.byId("anonymousPanel"), "display", "none");
+            domStyle.set(dom.byId("personalizedPanel"), "display", "block");
+
+            queryPortal(portalUser);
+          })
+
+          .otherwise(function(error) {
+            console.log("Error occurred while signing in: ", error);
+          });
+      }
+
+      function queryPortal(portalUser) {
+        var portal = portalUser.portal;
+
+        //See list of valid item types here:  http://www.arcgis.com/apidocs/rest/index.html?itemtypes.html
+        //See search reference here:  http://www.arcgis.com/apidocs/rest/index.html?searchreference.html
+        var queryParams = {
+          q:          "owner:" + portalUser.username,
+          sortField:  "numViews",
+          sortOrder:  "desc",
+          num:        20
+        };
+
+        portal.queryItems(queryParams)
+              .then(createGallery);
+      }
+
+      function createGallery(items) {
+        var htmlFragment = "";
+
+        // use array.forEach instead of dojo.forEach
+        // dojo.forEach(items.results, function(item) {
+        array.forEach(items.results, function(item) {
+          htmlFragment += (
+            "<div class=\"esri-item-container\">" +
+              (
+                item.thumbnailUrl ?
+                "<div class=\"esri-image\" style=\"background-image:url(" + item.thumbnailUrl + ");\"></div>" :
+                "<div class=\"esri-image esri-null-image\">Thumbnail not available</div>"
+              ) +
+              (
+                item.title ?
+                "<div class=\"esri-title\">" + (item.title || "") + "</div>" :
+                "<div class=\"esri-title esri-null-title\">Title not available</div>"
+              ) +
+            "</div>"
+          );
+        });
+
+        dom.byId("itemGallery").innerHTML = htmlFragment;
+      }
+    });
   </script>
 </head>
 
 <body class="claro">
 
   <div id="anonymousPanel" style="display: none; padding: 5px; text-align: center;">
-    <a href="javascript:void(0);" onclick="signIn();">Sign In</a> and view your ArcGIS Online items.
+    <!-- AMD: click handler set in require function -->
+    <!-- <a href="javascript:void(0);" onclick="signIn();">Sign In</a> and view your ArcGIS Online items. -->
+    <a href="javascript:void(0);" id="signInLink">Sign In</a> and view your ArcGIS Online items.
   </div>
 
   <div id="personalizedPanel" style="display: none; padding: 5px; text-align: center;">
     Welcome <span id="userId" style="font-weight: bold;"></span>
     &nbsp;-&nbsp;
-    <a href="javascript:void(0);" onclick="OAuthHelper.signOut();">Sign Out</a>
+    <!-- AMD: click handler set in require function -->
+    <!-- <a href="javascript:void(0);" onclick="OAuthHelper.signOut();">Sign Out</a> -->
+    <a href="javascript:void(0);" id="signOutLink">Sign Out</a>
   </div>
-  
+
   <div id="itemGallery" class="esri-item-gallery" style="width: 100%;"></div>
-  
+
 </body>
 </html>
