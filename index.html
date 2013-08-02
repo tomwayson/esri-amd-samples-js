@@ -12,28 +12,58 @@
 <body>
     <div class="container">
         <div class="info">
-      <article class="hero clearfix">
+      <header class="hero clearfix">
         <div class="col_100">
             <h1>AMD-Style Samples of Esri's ArcGIS for JavaScript API</h1>
         </div>
-    </article>
+    </header>
+    <article>
 
-            <h1>esri-amd-samples-js</h1>
+<p>The purpose of this project is to show modified versions of Esri's <a href="http://developers.arcgis.com/en/javascript/">ArcGIS API for JavaScript</a> <a href="http://developers.arcgis.com/en/javascript/jssamples/">sample pages</a> that use <a href="http://help.arcgis.com/en/webapi/javascript/arcgis/jshelp/inside_dojo_amd.html">Dojo's AMD-style loading</a> instead of the pre-AMD dojo.require syntax.</p>
 
-<h2>AMD-Style Samples of Esri's ArcGIS for JavaScript API</h2>
-
-<p>Examples of Esri's <a href="http://developers.arcgis.com/en/javascript/">ArcGIS for JavaScript API</a> <a href="http://developers.arcgis.com/en/javascript/jssamples/">sample pages</a> using <a href="http://help.arcgis.com/en/webapi/javascript/arcgis/jshelp/inside_dojo_amd.html">Dojo's AMD-style loading</a> instead of the pre-AMD dojo.require syntax.</p>
+<p>The intended audience is ArcGIS developers that are either just getting started with AMD, or who might be struggling to adapt a particular sample to work in their AMD project.</p>
 
 <ul>
     <li><a href="map_simple.html">Create a map</a></li>
     <li><a href="map_topo.html">Add a topographic map</a></li>
     <li><a href="image_simpleimageservice.html">Simple Image Service</a></li>
     <li><a href="portal_oauth_basic">OAuth Basic</a></li>
-    <li><a href="image_shadedreliefslope">Shaded relief and slope AMD</a> (requires <a href="http://developers.arcgis.com/en/javascript/jshelp/ags_proxy.html" target="_blank">configuration of a proxy page</a>)</li>
+    <li><a href="image_shadedreliefslope">Shaded relief and slope AMD</a> (requires <a href="http://developers.arcgis.com/en/javascript/jshelp/ags_proxy.html" target="_blank">configuration of a proxy page</a> for IE)</li>
 </ul>
 
-<p>NOTE: The examples of how to use the Esri <a href="http://developers.arcgis.com/en/javascript/">ArcGIS for JavaScript API</a> with <a href="http://dojobootstrap.com/">Dojo Bootstrap</a> have been moved to <a href="https://github.com/Esri/dojo-bootstrap-ui-for-maps-js">Esri/dojo-bootstrap-ui-for-maps-js</a>.</p>
-        </div>
+<p>This project does not aim to convert every sample page to AMD. I only convert samples to AMD when I need to incorporate them into my own projects.</p>
+
+<p>The samples in this project do not presume to show the "right" way to implement an AMD solution to a given problem. Only the minimal amount of code needed to convert the sample to AMD is added/updated. Whenever possible, the original code is commented out instead of replaced.</p>
+
+<p>For a comprehensive open source example that covers most of the common mapping operations (basemap, geocoding, etc) using the ArcGIS API for JavaScript with AMD, I recommend that you check out Allan Laframboise's excellent Quick Start Map guide:</p>
+
+<ul>
+<li><a href="https://github.com/alaframboise/quickstart-map-js">Repository</a></li>
+<li><a href="http://esri.github.com/quickstart-map-js/index.html">Live samples</a></li>
+</ul>
+
+<h2 id="contributing">Contributing</h2>
+
+<p>Anyone and everyone is welcome to contribute. The next time you find yourself converting one of the sample pages to AMD, I encourage you to share it here!</p>
+
+<h2 id="licensing">Licensing</h2>
+
+<p>Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at</p>
+
+<p>http://www.apache.org/licenses/LICENSE-2.0</p>
+
+<p>Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.</p>
+
+<p>A copy of the license is available in the repository's <a href="https://raw.github.com/Esri/dojo-bootstrap-ui-for-maps-js/master/license.txt">license.txt</a> file.</p>
+
+    </article>
+
             <footer class="footer clearfix">
       <div class="copyright">Site template and theme by <a href="http://cssr.ru/simpliste/" target="_blank">.Simpleste</a></div>
   </footer>
