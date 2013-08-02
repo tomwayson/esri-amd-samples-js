@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=7, IE=9, IE=10">
+    <!--The viewport meta tag is used to improve the presentation and behavior of the samples
+      on iOS devices-->
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no">
+    <title>Raster Function Tester</title>
+    <link rel="stylesheet" href="http://serverapi.arcgisonline.com/jsapi/arcgis/3.5/js/dojo/dijit/themes/claro/claro.css">
+    <link rel="stylesheet" href="http://serverapi.arcgisonline.com/jsapi/arcgis/3.5/js/esri/css/esri.css">
+    <style>
+      html, body { height: 100%; width: 100%; margin: 0; padding: 0; }
+      .shadow {
+        padding:8px;
+        -moz-border-radius: 6px;
+        -webkit-border-radius: 6px;
+        -moz-box-shadow: 0px 6px 3px -3px #888;
+        -webkit-box-shadow: 0px 6px 3px -3px #888;
+        box-shadow: 0px 6px 3px -3px #888;
+        background-color:white;
+      }
+      #floatingWindow {
+        position:absolute;
+        left:20px;
+        bottom:20px;
+        z-index:998;
+        width:360px;
+        background:url("images/blue.png") repeat scroll left top transparent;
+        border: solid 3px #028482;
+        color:#000000;
+        padding:10px;
+        font-family:"Tahoma"; color: black;
+        text-align:left;
+        -moz-border-radius:10px;
+        -webkit-border-radius: 10px;
+        border-radius: 10px;
+      }
+      #title{ font-size:10pt; padding-left:5px; }
+      #details{font-size:8pt;padding:10px;}
+      .disabled{color:#808080;!important}
+
+    </style>
+    <!-- add async: true -->
+    <script>var dojoConfig = { parseOnLoad: false, async: true };</script>
+    <script src="http://serverapi.arcgisonline.com/jsapi/arcgis/3.5/"></script>
+    <script>
+      require([
+        "dojo/parser",
+
+        "dijit/registry",
+
+        "esri/map",
+        "esri/layers/ImageServiceParameters",
+        "esri/layers/RasterFunction",
+        "esri/layers/ArcGISImageServiceLayer",
+
+        "dijit/form/TextBox",
+        "dijit/form/SimpleTextarea",
+        // "dijit/form/CheckBox",
+        "dijit/form/Button",
+        "dijit/layout/BorderContainer",
+        "dijit/layout/ContentPane",
+        "dojo/domReady!"
+      ], function(
+        parser,
+        registry,
+        Map, ImageServiceParameters, RasterFunction, ArcGISImageServiceLayer
+      ) {
+
+        var imageServiceLayer;
+
+        function init() {
+          var map;
+          var applyButton;
+
+          // parse dojo widgets on page
+          parser.parse();
+
+          // NOTE: requires configuration of a proxy page, see:
+          // http://developers.arcgis.com/en/javascript/jshelp/ags_proxy.html
+          esri.config.defaults.io.proxyUrl = "/proxy";
+
+          // init map
+          map = new esri.Map("map",{
+            basemap:"topo",
+            center:[-122.45,37.75], //long, lat
+            zoom:6,
+            sliderStyle:"small"
+          });
+
+          // add image service layer
+          imageServiceLayer = new ArcGISImageServiceLayer("/arcgis/rest/services/WeightedOverlay/WeightedOverlayUSFS/ImageServer", {
+              imageServiceParameters: getImageServiceParameters()
+          });
+          map.addLayers([imageServiceLayer]);
+
+          //  update image service rendering rule based on form vals
+          applyButton = registry.byId("applyButton");
+          applyButton.onClick = function() {
+            var rasterFunction = getRenderingRule();
+            imageServiceLayer.setRenderingRule(rasterFunction);
+          };
+        };
+
+        function getImageServiceParameters() {
+          var params = new ImageServiceParameters();
+          params.interpolation = ImageServiceParameters.INTERPOLATION_NEARESTNEIGHBOR;
+          params.renderingRule = getRenderingRule();
+          return params;
+        }
+
+        function getRenderingRule() {
+          var rasterFunction = new RasterFunction();
+          // read from raster function params from form
+          rasterFunction.functionName = registry.byId("functionName").value;
+          rasterFunction.arguments = JSON.parse(registry.byId("arguments").value);
+          rasterFunction.variableName = registry.byId("variableName").value; //  not sure if needed
+          return rasterFunction;
+        }
+
+        // initialize page
+        init();
+
+      });
+    </script>
+  </head>
+  <!-- TODO: update dojo markup to data-dojo-type, data-dojo-props, etc -->
+  <body class="claro">
+    <div data-dojo-type="dijit/layout/BorderContainer" data-dojo-props="design:'headline', gutters:false"
+    style="width: 100%; height: 100%; margin: 0;">
+      <div id="map" data-dojo-type="dijit/layout/ContentPane" data-dojo-props="region:'center'" style="overflow:hidden;position:relative; padding:0">
+        <div id="floatingWindow">
+          <div  class="shadow">
+            <div id="title">
+             Specify the raster function parameters and hit <strong>Apply</strong>.
+            </div>
+            <div id="details">
+            <label for="functionName">Function Name:</label>
+            <input type="text" style="width:20em;" value="WeightedOverlay_7_1_9" data-dojo-type="dijit/form/TextBox" id="functionName">
+            <br /> <label for="arguments">Arguments:</label>
+            <br /><textarea data-dojo-type="dijit/form/SimpleTextarea" id="arguments" style="min-height: 540px;width:100%;">
+{
+  "Raster1": "$7",
+  "Weight_Raster1": 0.1,
+  "InputRanges_Raster1": [0, 0, 5, 5, 10, 10],
+  "OutputValues_Raster1": [1, 5, 9],
+  "Raster2": "$1",
+  "Weight_Raster2": 0.1,
+  "InputRanges_Raster2": [0, 0, 1, 1, 2, 2, 3, 3, 4, 4],
+  "OutputValues_Raster2": [0, 5, 5, 9, 9],
+  "Raster3": "$2",
+  "Weight_Raster3": 0.1,
+  "InputRanges_Raster3": [0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9],
+  "OutputValues_Raster3": [1, 5, 5, 5, 9, 9, 1, 1, 1, 1],
+  "Raster4": "$3",
+  "Weight_Raster4": 0.1,
+  "InputRanges_Raster4": [0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7],
+  "OutputValues_Raster4": [1, 5, 1, 5, 1, 9, 5, 1],
+  "Raster5": "$4",
+  "Weight_Raster5": 0,
+  "Raster6": "$5",
+  "Weight_Raster6": 0.5,
+  "InputRanges_Raster6": [0, 65, 66, 132, 132, 255],
+  "OutputValues_Raster6": [1, 5, 9],
+  "Raster7": "$6",
+  "Weight_Raster7": 0.1,
+  "OutputValues_Raster7": [1, 9],
+  "InputRanges_Raster7": [0, 0, 1, 1]
+}
+            </textarea>
+            <br /> <label for="zfactor">Variable Name:</label>
+            <input type="text" style="width:20em;" value="Raster" data-dojo-type="dijit/form/TextBox" id="variableName">
+            <!-- <br /><br />
+            <input id="colormap" name="colormap" data-dojo-type="dijit/form/CheckBox"  type="checkbox"  checked="checked" />
+            <label id="colormapLabel" for="colormap">Use Colormap</label> -->
+            <center>
+              <button data-dojo-type="dijit/form/Button" type="button" id="applyButton"><span style="padding:50px inherit;">Apply<span></button>
+            </center>
+            </div>
+            </div>
+          </div>
+        </div>
+      </div>
+     </div>
+  </body>
+</html>

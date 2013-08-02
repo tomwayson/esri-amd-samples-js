@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=7,IE=9">
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no">
+    <title>Flickr Photos</title>
+    <link rel="stylesheet" href="http://serverapi.arcgisonline.com/jsapi/arcgis/3.4/js/dojo/dijit/themes/claro/claro.css">
+    <link rel="stylesheet" href="http://serverapi.arcgisonline.com/jsapi/arcgis/3.4/js/esri/css/esri.css">
+    <style>
+      html, body, #map {
+        height:100%;
+        width:100%;
+        margin:0;
+        padding:0;
+      }
+
+      .esriPopup  img{
+        max-width: 200px;
+        max-height: 133px;
+        border: solid 2px #000;
+      }
+      body {
+        background-color:#FFF;
+        overflow:hidden;
+        font-family:"Trebuchet MS";
+      }
+    </style>
+    <script src="http://serverapi.arcgisonline.com/jsapi/arcgis/3.4/"></script>
+    <script>
+      dojo.require("esri.map");
+      dojo.require("esri.dijit.Popup");
+
+      var map;
+
+      function init() {
+        map = new esri.Map("map",{
+          basemap: "gray",
+          center: [ 6.15 , 46.20 ], //long, lat
+          zoom: 5,
+          // sliderStyle: "small",
+          infoWindow: new esri.dijit.Popup(null, dojo.create("div"))
+        });
+        dojo.connect(map,"onLoad", loadPhotos);
+      }
+
+      function loadPhotos(){
+        var flickrPhotos = esri.request({
+          url: "http://api.flickr.com/services/feeds/geo",
+          content:{
+              format:"json",
+              tagmode: "any",
+              tags: "mountain"
+          },
+          callbackParamName: "jsoncallback"
+        });
+        flickrPhotos.then(addPhotos);
+      }
+
+      function addPhotos(data){
+       var symbol = new esri.symbol.PictureMarkerSymbol("http://dl.dropbox.com/u/52777651/flickr.png", 24, 24);
+       var template = new esri.dijit.PopupTemplate({
+          title: "{title}",
+          description:"{description}"
+        });
+
+        dojo.forEach(data.items, function(item){
+          var loc = new esri.geometry.Point(item.longitude, item.latitude);
+          map.graphics.add(new esri.Graphic(loc, symbol, item, template));
+        });
+
+      }
+      dojo.ready(init);
+    </script>
+  </head>
+  <body class="claro">
+    <div id="map"></div>
+  </body>
+</html> 

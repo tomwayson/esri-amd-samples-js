@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <!-- NOTE: this is an AMD-style port of the Shaded relief and slope:
+    http://developers.arcgis.com/en/javascript/jssamples/image_shadedreliefslope.html
+    -->
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=7, IE=9, IE=10">
+    <!--The viewport meta tag is used to improve the presentation and behavior of the samples
+      on iOS devices-->
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no">
+    <title>Shaded relief and slope AMD</title>
+    <link rel="stylesheet" href="http://serverapi.arcgisonline.com/jsapi/arcgis/3.5/js/dojo/dijit/themes/soria/soria.css">
+    <link rel="stylesheet" href="http://serverapi.arcgisonline.com/jsapi/arcgis/3.5/js/esri/css/esri.css">
+    <style>
+      html, body { height: 100%; width: 100%; margin: 0; padding: 0; }
+      .shadow {
+        padding:8px;
+        -moz-border-radius: 6px;
+        -webkit-border-radius: 6px;
+        -moz-box-shadow: 0px 6px 3px -3px #888;
+        -webkit-box-shadow: 0px 6px 3px -3px #888;
+        box-shadow: 0px 6px 3px -3px #888;
+        background-color:white;
+      }
+      #floatingWindow {
+        position:absolute;
+        right:25px;bottom:50px;z-index:998;
+        width:220px;
+        -moz-border-radius:10px;
+        -webkit-border-radius: 10px;
+        background:url("images/blue.png") repeat scroll left top transparent;
+        border: solid 3px #028482;
+        color:#000000;
+        padding:10px;
+        font-family:"Tahoma"; color: black;
+        text-align:left;
+      }
+      #title{ font-size:10pt; padding-left:5px; }
+      #details{font-size:8pt;padding:10px;}
+      .disabled{color:#808080;!important}
+    </style>
+    <!-- add async: true -->
+    <script>var dojoConfig = { parseOnLoad: false, async: true };</script>
+    <script src="http://serverapi.arcgisonline.com/jsapi/arcgis/3.5/"></script>
+    <script>
+      // use require() instead of dojo.require()
+      // dojo.require("dojo.parser");
+      // dojo.require("dijit.form.RadioButton");
+      // dojo.require("dijit.form.CheckBox");
+      // dojo.require("dijit.form.TextBox");
+      // dojo.require("dijit.form.Button");
+      // dojo.require("dijit.layout.BorderContainer");
+      // dojo.require("dijit.layout.ContentPane");
+      // dojo.require("esri.map");
+      require([
+        "dojo/parser",
+        "dojo/dom",
+        "dojo/dom-class",
+        "dojo/request/notify",
+
+        "dijit/registry",
+
+        "esri/request",
+        "esri/geometry/Extent",
+        "esri/map",
+        "esri/layers/ImageServiceParameters",
+        "esri/layers/RasterFunction",
+        "esri/layers/ArcGISImageServiceLayer",
+
+        "dijit/form/RadioButton",
+        "dijit/form/CheckBox",
+        "dijit/form/TextBox",
+        "dijit/form/Button",
+        "dijit/layout/BorderContainer",
+        "dijit/layout/ContentPane",
+        "dojo/domReady!"
+      ], function(
+        parser, dom, domClass, notify,
+        registry,
+        esriRequest, Extent, Map, ImageServiceParameters, RasterFunction, ArcGISImageServiceLayer
+        ) {
+
+        parser.parse();
+
+
+        var imageServiceLayer;
+        var map;
+        var colorRamp = [[0,175,240,233],[3,175,240,222],[7,177,242,212],
+            [11,177,242,198],[15,176,245,183],[19,185,247,178],[23,200,247,178],
+            [27,216,250,177],[31,232,252,179],[35,248,252,179],[39,238,245,162],
+            [43,208,232,135],[47,172,217,111],[51,136,204,88],[55,97,189,66],
+            [59,58,176,48],[63,32,161,43],[67,18,148,50],[71,5,133,58],[75,30,130,62],
+            [79,62,138,59],[83,88,145,55],[87,112,153,50],[91,136,158,46],[95,162,166,41],
+            [99,186,171,34],[103,212,178,25],[107,237,181,14],[111,247,174,2],
+            [115,232,144,2],[119,219,118,2],[123,204,93,2],[127,191,71,2],[131,176,51,2],
+            [135,163,34,2],[139,148,21,1],[143,135,8,1],[147,120,5,1],[151,117,14,2],[155,117,22,5],
+            [159,115,26,6],[163,112,31,7],[167,112,36,8],[171,110,37,9],[175,107,41,11],
+            [179,107,45,12],[183,105,48,14],[187,115,61,28],[191,122,72,40],[155,117,22,5],
+            [159,115,26,6],[163,112,31,7],[167,112,36,8],[171,110,37,9],
+            [175,107,41,11],[179,107,45,12],[183,105,48,14],[187,115,61,28],[191,122,72,40],
+            [155,117,22,5],[159,115,26,6],[163,112,31,7],[167,112,36,8],[171,110,37,9],
+            [175,107,41,11],[179,107,45,12],[183,105,48,14],[187,115,61,28],[191,122,72,40],
+            [195,133,86,57],[199,140,99,73],[203,148,111,90],[207,153,125,109],
+            [213,163,148,139],[217,168,163,160],[223,179,179,179],[227,189,189,189],
+            [231,196,196,196],[235,207,204,207],[239,217,215,217],[243,224,222,224],
+            [247,235,232,235],[251,245,242,245],[255,255,252,255]];
+
+        function init() {
+          // NOTE: requires configuration of a proxy page, see:
+          // http://developers.arcgis.com/en/javascript/jshelp/ags_proxy.html
+          esri.config.defaults.io.proxyUrl = "/proxy";
+
+          var initExtent = new Extent({"xmin":-13224484.260283869,"ymin":4295127.538002357,"xmax":-13105721.93623988,"ymax":4362783.124240531,"spatialReference":{"wkid":102100}});
+          map = new Map("map", {
+            extent: initExtent
+          });
+          //setup default parameters
+          // {
+          //     "rasterFunction": "WeightedOverlayUSFS",
+          //     "rasterFunctionArguments": {
+          //         "Raster1": "$1",
+          //         "Weight_Raster1": 0.50,
+          //         "InputRanges_Raster1": [0.0, 0.0, 5.0, 5.0, 10.0, 10.0],
+          //         "OutputValues_Raster1": [1.0, 5.0, 9.0],
+          //         "Raster2": "$2",
+          //         "Weight_Raster2": 0.50,
+          //         "InputRanges_Raster2": [0.0, 0.0, 1.0, 1.0, 2.0, 2.0, 3.0, 3.0, 4.0, 4.0],
+          //         "OutputValues_Raster2": [1.0, 5.0, 5.0, 9.0, 9.0],
+          //         "Raster3": "$3",
+          //         "Weight_Raster3": 0.00,
+          //         "Raster4": "$4",
+          //         "Weight_Raster4": 0.00,
+          //         "Raster5": "$5",
+          //         "Weight_Raster5": 0.00,
+          //         "Raster6": "$6",
+          //         "Weight_Raster6": 0.00,
+          //         "Raster7": "$7",
+          //         "Weight_Raster7": 0.00
+          //     }
+          // }
+          var params = new ImageServiceParameters();
+          var rasterFunction = new RasterFunction();
+          rasterFunction.functionName = "WeightedOverlay_7_1_9"; // "WeightedOverlayUSFS";
+          // var arguments = {
+          //     "Raster1": "$1",
+          //     "Weight_Raster1": 0.50,
+          //     "InputRanges_Raster1": [0.0, 0.0, 5.0, 5.0, 10.0, 10.0],
+          //     "OutputValues_Raster1": [1.0, 5.0, 9.0],
+          //     "Raster2": "$2",
+          //     "Weight_Raster2": 0.50,
+          //     "InputRanges_Raster2": [0.0, 0.0, 1.0, 1.0, 2.0, 2.0, 3.0, 3.0, 4.0, 4.0],
+          //     "OutputValues_Raster2": [1.0, 5.0, 5.0, 9.0, 9.0],
+          //     "Raster3": "$3",
+          //     "Weight_Raster3": 0.00,
+          //     "Raster4": "$4",
+          //     "Weight_Raster4": 0.00,
+          //     "Raster5": "$5",
+          //     "Weight_Raster5": 0.00,
+          //     "Raster6": "$6",
+          //     "Weight_Raster6": 0.00,
+          //     "Raster7": "$7",
+          //     "Weight_Raster7": 0.00
+          // };
+          // var arguments = {
+          //   "Raster1": "$1",
+          //   "Weight_Raster1": 1.00,
+          //   "InputRanges_Raster1": [0.00, 0.00, 5.00, 5.00, 10.00, 10.00],
+          //   "OutputValues_Raster1": [1.00, 5.00, 9.00],
+          //   "Raster2": "$2",
+          //   "Weight_Raster2": 0.00,
+          //   "Raster3": "$3",
+          //   "Weight_Raster3": 0.00,
+          //   "Raster4": "$4",
+          //   "Weight_Raster4": 0.00,
+          //   "Raster5": "$5",
+          //   "Weight_Raster5": 0.00,
+          //   "Raster6": "$6",
+          //   "Weight_Raster6": 0.00,
+          //   "Raster7": "$7",
+          //   "Weight_Raster7": 0.00
+          // };
+          var arguments = {
+            "Weight_Raster2": 0.1,
+            "InputRanges_Raster1": [0, 0, 5, 5, 10, 10],
+            "Raster6": "$5",
+            "Weight_Raster1": 0.1,
+            "Raster7": "$6",
+            "OutputValues_Raster4": [1, 5, 1, 5, 1, 9, 5, 1],
+            "InputRanges_Raster6": [0, 65, 66, 132, 132, 255],
+            "OutputValues_Raster2": [0, 5, 5, 9, 9],
+            "Raster3": "$2",
+            "Weight_Raster5": 0,
+            "Weight_Raster3": 0.1,
+            "Raster5": "$4",
+            "OutputValues_Raster1": [1, 5, 9],
+            "OutputValues_Raster6": [1, 5, 9],
+            "InputRanges_Raster3": [0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9],
+            "Weight_Raster6": 0.5,
+            "Weight_Raster4": 0.1,
+            "Raster2": "$1",
+            "InputRanges_Raster4": [0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7],
+            "OutputValues_Raster7": [1, 9],
+            "OutputValues_Raster3": [1, 5, 5, 5, 9, 9, 1, 1, 1, 1],
+            "InputRanges_Raster7": [0, 0, 1, 1],
+            "InputRanges_Raster2": [0, 0, 1, 1, 2, 2, 3, 3, 4, 4],
+            "Raster4": "$3",
+            "Weight_Raster7": 0.1,
+            "Raster1": "$7"
+          };
+          // arguments.Azimuth= parseFloat(dom.byId('azimuth').value); // 215.0;
+          // arguments.Altitude = parseFloat(dom.byId('altitude').value);//60.0;
+          // arguments.ZFactor = parseFloat(dom.byId('zfactor').value);//30.3;
+          // arguments.Colormap = colorRamp;
+
+          rasterFunction.arguments = arguments;
+          // don't think this is needed, it's not passed by Flex app
+          // rasterFunction.variableName = "Raster";
+          params.renderingRule = rasterFunction;
+          //  not sure if needed
+          // flex app specifies "RSP_NearestNeighbor"
+          params.interpolation = ImageServiceParameters.INTERPOLATION_NEARESTNEIGHBOR;
+          // where the argument ioArgs is of type: dojo.__XhrArgs (or) dojo.io.script.__ioArgs
+          esriRequest.setRequestPreCallback(function (ioArgs) {
+            // inspect ioArgs
+            console.log(ioArgs.url, ioArgs.content);
+
+            // TODO: change some query parameters if necessary
+            // ioArgs.content = ioArgs.content || {};
+            // ioArgs.content.token = "ABCDEF123456";
+
+            // don't forget to return ioArgs.
+            return ioArgs;
+          });
+
+          notify("send", function(response, cancel){
+              // cancel() can be called to prevent the request from being sent
+              console.log("sending: ", response);
+          });
+
+          // NOTE: this sample is using a reverse proxy (/ArcgGIS) to point to the sample server
+          // imageServiceLayer = new ArcGISImageServiceLayer("http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/Earthquakes/CaliforniaDEM/ImageServer",{imageServiceParameters:params});
+          imageServiceLayer = new ArcGISImageServiceLayer("/arcgis/rest/services/WeightedOverlay/WeightedOverlayUSFS/ImageServer",{imageServiceParameters:params});
+          imageServiceLayer.on("load", function (layer) {
+            console.log(layer);
+            if (layer.loaded) {
+              layer.pixelType = "UNKNOWN";
+            }
+          });
+          imageServiceLayer.on("load", function (layer) {
+            console.log("loaded:", layer);
+            if (layer.loaded) {
+              // set pixel type
+              // does not appear to be working
+              layer.pixelType = "UNKNOWN";
+            }
+          });
+          imageServiceLayer.on("update-start", function() {
+            // var arguments = imageServiceLayer.renderingRule.arguments;
+            // if (arguments) {
+            //   if (arguments.InputRanges_Raster1) {
+            //     for (var i = arguments.InputRanges_Raster1.length - 1; i >= 0; i--) {
+            //       arguments.InputRanges_Raster1[i] = arguments.InputRanges_Raster1[i].toPr
+            //     };
+            //   }
+            // }
+            console.log("updating:", imageServiceLayer);
+          });
+          map.addLayers([imageServiceLayer]);
+          // no longer needed as of JS API v3.3 b/c map resizes automatically, see:
+          // http://developers.arcgis.com/en/javascript/jshelp/new_v33.html
+          // dojo.connect(map, 'onLoad', function(theMap) {
+          //   //resize the map when the browser resizes
+          //   dojo.connect(dijit.byId('map'), 'resize', map,map.resize);
+          // });
+        }
+        // WARNING: anti-pattern
+        // the non-AMD version of this sample uses functions in the global namespace
+        // with AMD, these functions are now defined w/in the require function
+        // and are no longer accessible to the inline event handling handling code below
+        // (i.e. the HTML onclick/onchange attributes)
+        // For convenience, the functions are added back to the global namespace here,
+        // but a better pattern would be to attach events in init() instead of in the HTML
+        //
+        // function applyVals(){
+        window.applyVals = function(){
+          var rasterFunction = new RasterFunction();
+          var arguments = {};
+
+          //apply the new values
+          if( dom.byId("valSR").checked){//shaded relief
+              rasterFunction.variableName = "Raster";
+              arguments.Azimuth= parseFloat(dom.byId('azimuth').value);
+              arguments.Altitude = parseFloat(dom.byId('altitude').value);
+            if(dom.byId("colormap").checked){
+              rasterFunction.functionName = "ShadedRelief";
+              arguments.Colormap = colorRamp;
+            } else {
+              rasterFunction.functionName = "Hillshade";
+              rasterFunction.variableName = "DEM";
+            }
+          } else {//slope
+            rasterFunction.functionName = "Slope";
+            rasterFunction.variableName = "DEM";
+          }
+
+          arguments.ZFactor = parseFloat(dom.byId('zfactor').value);
+          rasterFunction.arguments = arguments;
+          imageServiceLayer.setRenderingRule(rasterFunction);
+        }
+        // function toggleVals(evt){
+        window.toggleVals = function (evt){
+          //enable/disable values depending on selected option
+          if(evt.value === "ShadedRelief"){
+            registry.byId("colormap").attr("disabled",true);
+            registry.byId("azimuth").attr("disabled",true);
+            registry.byId("altitude").attr("disabled",true);
+            domClass.add("colormapLabel","disabled");
+            domClass.add("azimuthLabel","disabled");
+            domClass.add("altitudeLabel","disabled");
+          } else {
+            //slope
+            registry.byId("colormap").attr("disabled",false);
+            registry.byId("azimuth").attr("disabled",false);
+            registry.byId("altitude").attr("disabled",false);
+            domClass.remove("colormapLabel","disabled");
+            domClass.remove("azimuthLabel","disabled");
+            domClass.remove("altitudeLabel","disabled");
+          }
+        }
+        // domReady! replaces dojo.ready()
+        // dojo.ready(init);
+        init();
+      });
+    </script>
+  </head>
+
+  <body class="soria">
+    <div dojotype="dijit.layout.BorderContainer" design="headline" gutters="false"
+    style="width: 100%; height: 100%; margin: 0;">
+      <div id="map" dojotype="dijit.layout.ContentPane" region="center" style="overflow:hidden;position:relative;">
+        <!-- <div id="floatingWindow">
+          <div  class="shadow">
+            <div id="title">
+             Choose the shaded relief or slope raster function, then define input properties.
+            </div>
+
+            <div id="details">
+            <input dojoType="dijit.form.RadioButton" id="valSR" name="group1" checked="checked" onchange='toggleVals(this);' value="ShadedRelief" type="radio"/>
+            <label for="valSR">Shaded Relief</label>
+            <input dojoType="dijit.form.RadioButton" id="valSlope" name="group1" value="Slope" onchange='toggleVals(this)' type="radio"/>
+            <label  for="valSlope">Slope</label>
+            <br /><br /> <label id="azimuthLabel" for="azimuth">Azimuth:</label>
+            <input type="text" style="width:5em;" value="215.0" dojoType="dijit.form.TextBox" id="azimuth">
+            <br /> <label id="altitudeLabel" for="altitude">Altitude:</label>
+            <input type="text" style="width:5em;"   value="60.0" dojoType="dijit.form.TextBox" id="altitude">
+            <br /> <label for="zfactor">ZFactor:</label>
+            <input type="text" style="width:5em;"  value="30.3" dojoType="dijit.form.TextBox" id="zfactor">
+            <br /><br />
+            <input id="colormap" name="colormap" dojotype="dijit.form.CheckBox"  type="checkbox"  checked="checked" />
+            <label id="colormapLabel" for="colormap">Use Colormap</label>
+            <center>
+              <button dojoType="dijit.form.Button" onclick="applyVals()" type="button"><span style="padding:50px;">Apply<span></button>
+            </center>
+            </div>
+            </div>
+          </div>
+        </div> -->
+      </div>
+     </div>
+  </body>
+
+</html>
