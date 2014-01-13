@@ -4,17 +4,19 @@
 
 The purpose of this project is to show modified versions of Esri's [ArcGIS API for JavaScript](http://developers.arcgis.com/en/javascript/) [sample pages](http://developers.arcgis.com/en/javascript/jssamples/) that use [Dojo's AMD-style loading](http://help.arcgis.com/en/webapi/javascript/arcgis/jshelp/inside_dojo_amd.html) instead of the pre-AMD dojo.require syntax.
 
+**NOTE: [As of version 3.6](https://developers.arcgis.com/en/javascript/jshelp/new_v36.html) of the ArcGIS API for JavaScript, most of the sample pages use AMD style loading.**
+
 The intended audience is ArcGIS developers that are either just getting started with AMD, or who might be struggling to adapt a particular sample to work in their AMD project.
 
 [View it live](http://tomwayson.github.io/esri-amd-samples-js/)
 
 This project does not aim to convert every sample page to AMD. I only convert samples to AMD when I need to incorporate them into my own projects.
 
-The samples in this project do not presume to show the "right" way to implement an AMD solution to a given problem. Only the minimal amount of code needed to convert the sample to AMD is added/updated. Whenever possible, the original code is commented out instead of replaced.
-
 For a comprehensive open source example that covers most of the common mapping operations (basemap, geocoding, etc) using the ArcGIS API for JavaScript with AMD, I recommend that you check out Allan Laframboise's excellent Quick Start Map guide:
 - [Repository](https://github.com/alaframboise/quickstart-map-js)
 - [Live samples](http://esri.github.com/quickstart-map-js/index.html)
+
+Finally, The samples in this project do not presume to show the "right" way to implement an AMD solution to a given problem. Only the minimal amount of code needed to convert the sample to AMD is added/updated. Whenever possible, the original code is commented out instead of replaced.
 
 ## Contributing
 
